@@ -542,7 +542,6 @@
 
       function applyLandOnlyStyles(doc, isLand) {
         if (!doc) return;
-        // Supprimer l'ancien style s'il existe pour forcer la mise à jour
         const oldStyle = doc.getElementById("qa-land-only-fit");
         if (oldStyle) oldStyle.remove();
 
@@ -551,121 +550,189 @@
           style.id = "qa-land-only-fit";
           doc.head.appendChild(style);
           
-          console.log("QA PERSISTENCE: LAND ON", currentW, "x", currentH);
+          console.log("[qa-p1] Land Styles Applied (Fit Images)");
           style.textContent = `
-                    /* Image fit land only - PERSISTENT */
+                    /* P1 Land Only - Responsive Image Fit */
                     #flipbook .page-content img {
-                        max-height: 32vh !important;
-                        max-width: 90% !important;
+                        max-height: 31vh !important; /* Laisse respirer le texte */
+                        max-width: 88% !important;
                         width: auto !important;
                         height: auto !important;
                         object-fit: contain !important;
                         display: block !important;
-                        margin: 5px auto !important;
+                        margin: 4px auto !important;
                     }
                     /* Space optimization */
                     .page-content { 
-                        padding-top: 8px !important; 
-                        padding-bottom: 8px !important; 
+                        padding: 10px !important;
                         justify-content: flex-start !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: center !important;
                     }
-                    h1, h2 { 
-                        margin: 5px 0 3px !important; 
-                        line-height: 1.1 !important;
+                    h1, h2 { margin: 4px 0 !important; line-height: 1.1 !important; font-size: 1.2rem !important; }
+                    p { font-size: 0.9rem !important; line-height: 1.3 !important; margin-bottom: 0.8vh !important; }
+                    
+                    /* ✅ PATCH LANDSCAPE FIT — Pages 2, 4, 6, 7 */
+                    @media (max-height: 400px) and (max-width: 950px) {
+                        #flipbook .p2 .page-content, #flipbook .p4 .page-content, 
+                        #flipbook .p6 .page-content, #flipbook .p7 .page-content {
+                            padding: 2% 4% !important;
+                            display: flex !important;
+                            flex-direction: column !important;
+                            justify-content: center !important;
+                            align-items: center !important;
+                            height: 100% !important;
+                            box-sizing: border-box !important;
+                            overflow: hidden !important; /* Désactive le scroll vertical */
+                        }
+                        #flipbook .p2 .page-content img, #flipbook .p4 .page-content img, 
+                        #flipbook .p6 .page-content img, #flipbook .p7 .page-content img {
+                            flex: 0 1 auto !important;
+                            min-height: 0 !important; /* Permet la compression proportionnelle */
+                            max-height: 40% !important; 
+                            width: auto !important;
+                            margin: 1% auto !important;
+                            object-fit: contain !important;
+                        }
+                        #flipbook .p2 h1, #flipbook .p4 h1, #flipbook .p6 h1, #flipbook .p7 h1,
+                        #flipbook .p2 h2, #flipbook .p4 h2, #flipbook .p6 h2, #flipbook .p7 h2 {
+                            font-size: clamp(0.7rem, 4vh, 0.95rem) !important;
+                            line-height: 1.1 !important;
+                            margin: 1% 0 !important;
+                            flex: 0 0 auto !important;
+                            text-align: center !important;
+                        }
+                        #flipbook .p2 p, #flipbook .p4 p, #flipbook .p6 p, #flipbook .p7 p {
+                            font-size: clamp(0.6rem, 3.5vh, 0.78rem) !important;
+                            line-height: 1.2 !important;
+                            margin: 0 0 1% 0 !important;
+                            flex: 0 1 auto !important;
+                            overflow: hidden !important;
+                            text-align: center !important;
+                        }
                     }
-                    p {
-                        font-size: 0.95rem !important;
-                        line-height: 1.3 !important;
-                        margin-bottom: 1vh !important;
+                    /* Land Compact (740x360) / Smaller heights */
+                    @media (max-height: 370px) {
+                        #flipbook .p2 .page-content, #flipbook .p4 .page-content, 
+                        #flipbook .p6 .page-content, #flipbook .p7 .page-content {
+                            padding: 1% 2% !important;
+                        }
+                        #flipbook .p2 .page-content img, #flipbook .p4 .page-content img, 
+                        #flipbook .p6 .page-content img, #flipbook .p7 .page-content img {
+                            max-height: 30% !important;
+                            margin: 0 auto !important;
+                        }
+                        #flipbook .p2 p, #flipbook .p4 p, #flipbook .p6 p, #flipbook .p7 p {
+                            font-size: clamp(0.55rem, 3.2vh, 0.72rem) !important;
+                            margin-bottom: 0 !important;
+                        }
+                        #flipbook .p2 h1, #flipbook .p4 h1, #flipbook .p6 h1, #flipbook .p7 h1,
+                        #flipbook .p2 h2, #flipbook .p4 h2, #flipbook .p6 h2, #flipbook .p7 h2 {
+                            margin: 1% 0 0 0 !important;
+                        }
                     }
-                    /* Centrage Flipbook Double Page */
+
+                    /* Centrage Flipbook et masquage débordements */
                     #flipbook { margin: 0 auto !important; overflow: visible !important; }
-                    .flip-page { box-shadow: 0 0 20px rgba(0,0,0,0.1) !important; }
+                    .flip-page { box-shadow: 0 0 15px rgba(0,0,0,0.1) !important; background: white !important; }
                 `;
-        } else {
-          console.log("QA PERSISTENCE: PORTRAIT (Land styles removed)");
         }
       }
 
       function applyDisplayMode() {
         if (displayLock) return;
         displayLock = true;
-        setTimeout(() => {
-          displayLock = false;
-        }, 300);
+        setTimeout(() => { displayLock = false; }, 300);
 
-        // Détection orientation (basée sur la simulation PRESET)
         const landscape = currentW > currentH;
 
-        // Accès fail-safe à Turn.js dans l'iframe
         try {
           const f = document.getElementById("preview");
-          const w = f?.contentWindow;
-          const $ = w?.$;
-          if (
-            !$ ||
-            !$("#flipbook").length ||
-            typeof $("#flipbook").turn !== "function"
-          ) {
-            return;
-          }
-          const $book = $("#flipbook");
+          const doc = f?.contentDocument;
+          const win = f?.contentWindow;
           
-          // ✅ LOGS DE DÉBOGAGE VISIBLES (Dans la console du wrapper)
-          const currentPage = $book.turn("page");
-          const totalPages = $book.turn("pages");
-          console.log("[qa-debug] Page:", currentPage, "/", totalPages, "Display:", $book.turn("display"));
+          if (!doc || !win) return;
 
-          // ✅ STRATÉGIE HYBRIDE LANDSCAPE
-          let wantedMode = "single";
-          if (landscape) {
-             wantedMode = (currentPage <= 1) ? "single" : "double";
-          } else {
-             wantedMode = "single";
+          // ✅ INJECTION DU SCRIPT D'AUTONOMIE DANS L'IFRAME
+          // Pour contourner les SecurityError "cross-origin" sur file://
+          let coreScript = doc.getElementById("qa-core-logic");
+          if (!coreScript) {
+             coreScript = doc.createElement("script");
+             coreScript.id = "qa-core-logic";
+             doc.body.appendChild(coreScript);
           }
 
-          if (wantedMode !== currentDisplay) {
-            console.log("[display] Force Mode:", wantedMode);
-            $book.turn("display", wantedMode);
-            currentDisplay = wantedMode;
-          }
+          // Passer les variables au script interne
+          win.__qaData = { landscape };
 
-          // ✅ GESTION PAGES IMPAIRES (LAND ONLY)
-          if (landscape && totalPages % 2 !== 0 && !w.__qaPageCheckDone) {
-             console.log("[qa] Adding blank page at:", totalPages + 1);
-             try {
-                // Créer un élément simple pour Turn.js
-                const blankPage = w.document.createElement("div");
-                blankPage.className = "qa-blank-page"; // Classe neutre
-                blankPage.innerHTML = '<div class="page-content" style="background:white;"></div>';
-                $book.turn("addPage", blankPage, totalPages + 1);
-                w.__qaPageCheckDone = true;
-                console.log("[qa] Page added successfully. New total:", $book.turn("pages"));
-             } catch(e) { console.error("[qa] AddPage Fail:", e.message); }
-          }
+          coreScript.textContent = `
+            (function() {
+              const $ = window.jQuery || window.$;
+              const $book = $('#flipbook');
+              if (!$ || !$book.length || typeof $book.turn !== 'function') return;
 
-          // ✅ INJECTION HOOKS TURN.JS (Une seule fois)
-          if (!w.__qaHooksAttached) {
-            // Utilisation de turning pour anticiper le changement de mode
-            $book.bind("turning", (event, page) => {
-              const isLand = (currentW > currentH);
+              const isLand = window.__qaData.landscape;
+              const p = $book.turn("page");
+              
+              const updateSize = () => {
+                 const fw = window.innerWidth;
+                 const fh = window.innerHeight;
+                 $book.turn("size", fw, fh);
+                 $book.css({
+                   "margin": "0 auto",
+                   "width": fw + "px",
+                   "height": fh + "px"
+                 });
+              };
+
+              // 1. Force Display Mode
+              let targetDisplay = "single";
               if (isLand) {
-                const nextMode = (page <= 1) ? "single" : "double";
-                if ($book.turn("display") !== nextMode) {
-                   $book.turn("display", nextMode);
-                   currentDisplay = nextMode;
-                   console.log("[qa-hook] Switching to", nextMode, "for page", page);
-                   // Refresh layout
-                   setTimeout(resizeBook, 50);
-                }
+                targetDisplay = (p <= 1) ? "single" : "double";
               }
-            });
-            $book.bind("turned", (event, page) => {
-               console.log("[qa-hook] Turned to page", page);
-               resizeBook();
-            });
-            w.__qaHooksAttached = true;
-          }
+
+              if ($book.turn("display") !== targetDisplay) {
+                $book.turn("display", targetDisplay);
+                console.log("[qa-internal] Display ->", targetDisplay);
+              }
+              
+              updateSize();
+
+              // 2. Gestion Pages Impaires (Land Only)
+              const total = $book.turn("pages");
+              if (isLand && total % 2 !== 0 && !window.__qaPageCheckDone) {
+                 try {
+                    const blank = document.createElement("div");
+                    blank.className = "qa-blank-page";
+                    blank.innerHTML = '<div class="page-content" style="background:white;"></div>';
+                    $book.turn("addPage", blank, total + 1);
+                    window.__qaPageCheckDone = true;
+                    console.log("[qa-internal] Added blank page.");
+                    setTimeout(updateSize, 100);
+                 } catch(e) {}
+              }
+
+              // 3. Hooks Turn.js (Une seule fois)
+              if (!window.__qaEventsAttached) {
+                $book.on("turning", (e, page) => {
+                  const currentIsLand = (window.innerWidth > window.innerHeight);
+                  if (currentIsLand) {
+                    const m = (page <= 1) ? "single" : "double";
+                    if ($book.turn("display") !== m) {
+                       $book.turn("display", m);
+                       setTimeout(updateSize, 50);
+                    }
+                  }
+                });
+                $book.on("turned", (e, page) => {
+                   updateSize();
+                   setTimeout(updateSize, 400); 
+                });
+                window.__qaEventsAttached = true;
+              }
+            })();
+          `;
 
           resizeBook();
         } catch (err) {
@@ -676,15 +743,29 @@
       function resizeBook() {
         try {
           const f = document.getElementById("preview");
-          const landscape = currentW > currentH;
-          applyLandOnlyStyles(f.contentDocument, landscape);
+          if (!f) return;
           
-          const $book = f.contentWindow.$("#flipbook");
-          // ✅ Utiliser offsetWidth de l'iframe (taille réelle après rendu)
-          const fw = f.offsetWidth;
-          const fh = f.offsetHeight;
-          $book.turn("size", fw, fh);
-        } catch (e) {}
+          const landscape = currentW > currentH;
+          if (f.contentDocument) {
+            applyLandOnlyStyles(f.contentDocument, landscape);
+          }
+          
+          // On tente le resize Turn.js via le window de l'iframe (si accessible)
+          const win = f.contentWindow;
+          const $ = win?.jQuery || win?.$;
+          if ($) {
+            const $book = $("#flipbook");
+            if ($book.length && typeof $book.turn === "function") {
+               const fw = f.offsetWidth;
+               const fh = f.offsetHeight;
+               $book.turn("size", fw, fh);
+               $book.css({ "margin": "0 auto", "width": fw + "px", "height": fh + "px" });
+               console.log("[qa-resize] Success:", fw, "x", fh);
+            }
+          }
+        } catch (e) {
+          // Si bloqué par CORS, le script injecté dans l'iframe prendra le relais via updateSize()
+        }
       }
 
       // Écouter les changements d'orientation/résolution (HORS updateUI)
