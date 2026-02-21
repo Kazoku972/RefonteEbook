@@ -362,8 +362,11 @@
             // Révélation immédiate si nécessaire
             iframe.style.opacity = "1";
 
+            // ✅ LAND ONLY: Fit images to leave room for text
+            const landscape = currentW > currentH;
+            if (doc) applyLandOnlyStyles(doc, landscape);
+            
             // ✅ QA: boost images only on pages 2/4/6/7 (injection dans l'iframe)
-            const doc = iframe.contentDocument;
             if (doc && !doc.getElementById("qa-img-boost")) {
               const style = doc.createElement("style");
               style.id = "qa-img-boost";
@@ -536,6 +539,51 @@
       let displayLock = false;
       let currentDisplay = "single";
 
+
+      function applyLandOnlyStyles(doc, isLand) {
+        if (!doc) return;
+        // Supprimer l'ancien style s'il existe pour forcer la mise à jour
+        const oldStyle = doc.getElementById("qa-land-only-fit");
+        if (oldStyle) oldStyle.remove();
+
+        if (isLand) {
+          const style = doc.createElement("style");
+          style.id = "qa-land-only-fit";
+          doc.head.appendChild(style);
+          
+          console.log("QA PERSISTENCE: LAND ON", currentW, "x", currentH);
+          style.textContent = `
+                    /* Image fit land only - PERSISTENT */
+                    #flipbook .page-content img {
+                        max-height: 32vh !important;
+                        max-width: 90% !important;
+                        width: auto !important;
+                        height: auto !important;
+                        object-fit: contain !important;
+                        display: block !important;
+                        margin: 5px auto !important;
+                    }
+                    /* Space optimization */
+                    .page-content { 
+                        padding-top: 8px !important; 
+                        padding-bottom: 8px !important; 
+                        justify-content: flex-start !important;
+                    }
+                    h1, h2 { 
+                        margin: 5px 0 3px !important; 
+                        line-height: 1.1 !important;
+                    }
+                    p {
+                        font-size: 0.95rem !important;
+                        line-height: 1.3 !important;
+                        margin-bottom: 1vh !important;
+                    }
+                `;
+        } else {
+          console.log("QA PERSISTENCE: PORTRAIT (Land styles removed)");
+        }
+      }
+
       function applyDisplayMode() {
         if (displayLock) return;
         displayLock = true;
@@ -583,6 +631,9 @@
       function resizeBook() {
         try {
           const f = document.getElementById("preview");
+          const landscape = currentW > currentH;
+          applyLandOnlyStyles(f.contentDocument, landscape);
+          
           const $book = f.contentWindow.$("#flipbook");
           // ✅ Utiliser offsetWidth de l'iframe (taille réelle après rendu)
           const fw = f.offsetWidth;
