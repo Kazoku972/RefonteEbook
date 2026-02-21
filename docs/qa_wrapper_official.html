@@ -578,6 +578,9 @@
                         line-height: 1.3 !important;
                         margin-bottom: 1vh !important;
                     }
+                    /* Centrage Flipbook Double Page */
+                    #flipbook { margin: 0 auto !important; overflow: visible !important; }
+                    .flip-page { box-shadow: 0 0 20px rgba(0,0,0,0.1) !important; }
                 `;
         } else {
           console.log("QA PERSISTENCE: PORTRAIT (Land styles removed)");
@@ -593,13 +596,6 @@
 
         // Détection orientation (basée sur la simulation PRESET)
         const landscape = currentW > currentH;
-        const wantedMode = landscape ? "double" : "single";
-
-        if (wantedMode === currentDisplay) {
-          // Même si le mode n'a pas changé, on force un resize au cas où les dimensions ont bougé
-          resizeBook();
-          return;
-        }
 
         // Accès fail-safe à Turn.js dans l'iframe
         try {
@@ -614,15 +610,64 @@
             return;
           }
           const $book = $("#flipbook");
-          $book.turn("display", wantedMode);
-          currentDisplay = wantedMode;
+          
+          // ✅ LOGS DE DÉBOGAGE VISIBLES (Dans la console du wrapper)
+          const currentPage = $book.turn("page");
+          const totalPages = $book.turn("pages");
+          console.log("[qa-debug] Page:", currentPage, "/", totalPages, "Display:", $book.turn("display"));
+
+          // ✅ STRATÉGIE HYBRIDE LANDSCAPE
+          let wantedMode = "single";
+          if (landscape) {
+             wantedMode = (currentPage <= 1) ? "single" : "double";
+          } else {
+             wantedMode = "single";
+          }
+
+          if (wantedMode !== currentDisplay) {
+            console.log("[display] Force Mode:", wantedMode);
+            $book.turn("display", wantedMode);
+            currentDisplay = wantedMode;
+          }
+
+          // ✅ GESTION PAGES IMPAIRES (LAND ONLY)
+          if (landscape && totalPages % 2 !== 0 && !w.__qaPageCheckDone) {
+             console.log("[qa] Adding blank page at:", totalPages + 1);
+             try {
+                // Créer un élément simple pour Turn.js
+                const blankPage = w.document.createElement("div");
+                blankPage.className = "qa-blank-page"; // Classe neutre
+                blankPage.innerHTML = '<div class="page-content" style="background:white;"></div>';
+                $book.turn("addPage", blankPage, totalPages + 1);
+                w.__qaPageCheckDone = true;
+                console.log("[qa] Page added successfully. New total:", $book.turn("pages"));
+             } catch(e) { console.error("[qa] AddPage Fail:", e.message); }
+          }
+
+          // ✅ INJECTION HOOKS TURN.JS (Une seule fois)
+          if (!w.__qaHooksAttached) {
+            // Utilisation de turning pour anticiper le changement de mode
+            $book.bind("turning", (event, page) => {
+              const isLand = (currentW > currentH);
+              if (isLand) {
+                const nextMode = (page <= 1) ? "single" : "double";
+                if ($book.turn("display") !== nextMode) {
+                   $book.turn("display", nextMode);
+                   currentDisplay = nextMode;
+                   console.log("[qa-hook] Switching to", nextMode, "for page", page);
+                   // Refresh layout
+                   setTimeout(resizeBook, 50);
+                }
+              }
+            });
+            $book.bind("turned", (event, page) => {
+               console.log("[qa-hook] Turned to page", page);
+               resizeBook();
+            });
+            w.__qaHooksAttached = true;
+          }
 
           resizeBook();
-          console.log(
-            "[display]",
-            currentDisplay,
-            "(landscape-simulated=" + landscape + ")",
-          );
         } catch (err) {
           console.warn("[display] Fail-safe:", err.message);
         }
