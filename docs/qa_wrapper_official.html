@@ -630,26 +630,39 @@
         const artboard = document.getElementById("labArtboard");
         const preview = document.getElementById("preview");
 
-        // ✅ ABORBOARD SCALING ENGINE (V11)
+        // ✅ ABORBOARD SCALING ENGINE V12 (Clone Lab Pixel-Perfect)
         const updateArtboardScale = () => {
              const vv = window.visualViewport;
              const vw = vv ? vv.width : window.innerWidth;
              const vh = vv ? vv.height : window.innerHeight;
 
              if (landscape && artboard) {
-                // Clone Lab Mode (820x366)
+                // Target Lab zone: 820x366
                 const labW = 820;
                 const labH = 366;
                 const scale = Math.min(vw / labW, vh / labH);
+                
                 artboard.style.width = labW + "px";
                 artboard.style.height = labH + "px";
                 artboard.style.transform = `scale(${scale})`;
-                console.log("[qa-v11] Artboard Scaling:", scale.toFixed(3));
+                
+                // Ensure it's centered
+                artboard.style.position = "absolute";
+                artboard.style.left = "50%";
+                artboard.style.top = "50%";
+                artboard.style.marginLeft = `-${labW/2}px`;
+                artboard.style.marginTop = `-${labH/2}px`;
+                
+                console.log("[qa-v12] Artboard Sync (Scale:", scale.toFixed(4) + ")");
              } else if (artboard) {
-                // Portrait Mode: No scaling
+                // Portrait Mode: Reset to native
                 artboard.style.width = "100%";
                 artboard.style.height = "100%";
                 artboard.style.transform = "none";
+                artboard.style.position = "relative";
+                artboard.style.left = "0";
+                artboard.style.top = "0";
+                artboard.style.margin = "0";
              }
         };
 
@@ -665,10 +678,11 @@
              doc.body.appendChild(coreScript);
           }
 
-          win.__qaData = { landscape, version: "v11.0-artboard" };
+          win.__qaData = { landscape, version: "v12.0-final" };
 
           coreScript.textContent = `
             (function() {
+              console.log("--- QA_PATCH=v12.0-final ---");
               const $ = window.jQuery || window.$;
               const $book = $('#flipbook');
               if (!$ || !$book.length || typeof $book.turn !== 'function') return;
@@ -676,45 +690,63 @@
               const total = 7; 
               
               const syncSize = () => {
-                 const isL = (window.innerWidth > window.innerHeight);
                  const fw = window.innerWidth;
                  const fh = window.innerHeight;
 
-                 // Purge overflow pages
+                 // ✅ ANTI-GHOST V12: Violent DOM cleanup
                  if ($book.turn("pages") > total) {
                     $book.turn("pages", total);
-                    $('.p8, .p9, .p10, .p11, .p12').remove();
+                    $('[class*="p8"], [class*="p9"], [class*="p10"]').remove();
                  }
                  
                  $book.turn("size", fw, fh);
-                 $book.css({ "margin": "0 auto", "width": fw + "px", "height": fh + "px" });
-                 console.log("[qa-v11] Iframe Internal Resize:", fw, "x", fh);
+                 $book.css({ 
+                   "margin": "0 auto", 
+                   "width": fw + "px", 
+                   "height": fh + "px",
+                   "overflow": "visible" 
+                 });
               };
 
+              // ✅ HYBRID MODE V12 (Strict Cover Fix)
               const syncDisplay = (page) => {
                  const isL = (window.innerWidth > window.innerHeight);
                  if (isL) {
                     const targetMode = (page <= 1) ? "single" : "double";
-                    if ($book.turn("display") !== targetMode) $book.turn("display", targetMode);
+                    if ($book.turn("display") !== targetMode) {
+                        $book.turn("display", targetMode);
+                    }
                  } else {
                     if ($book.turn("display") !== "single") $book.turn("display", "single");
                  }
                  syncSize();
               };
 
+              // Initial Init
               $book.turn("pages", total);
               syncDisplay($book.turn("page"));
               syncSize();
 
               if (!window.__qaEventsAttached) {
                 $book.on("turning", (e, page) => {
-                  if (page > total || page < 1) { e.preventDefault(); return; }
+                  // ✅ HARD CLAMP P7
+                  if (page > total || page < 1) { 
+                     e.preventDefault(); 
+                     console.warn("[v12-clamp] Blocked navigation to page", page);
+                     return; 
+                  }
                   syncDisplay(page);
                 });
+
                 $book.on("turned", (e, page) => {
                    syncSize();
+                   // Re-check display mode after animation
                    setTimeout(() => syncDisplay(page), 50);
+                   if (page === 1 && $book.turn("display") !== "single") {
+                      $book.turn("display", "single");
+                   }
                 });
+
                 window.addEventListener("resize", syncSize);
                 window.__qaEventsAttached = true;
               }
@@ -724,7 +756,7 @@
           updateArtboardScale();
           render_land_styles(doc, landscape);
         } catch (err) {
-          console.warn("[qa-v11] Fail-safe:", err.message);
+          console.warn("[qa-v12] Fail-safe:", err.message);
         }
       }
 
