@@ -12,21 +12,33 @@ import coucher from '../assets/images/Scène Coucher Tendre.webp';
 
 const Book = () => {
     const [dimensions, setDimensions] = useState({
-        width: window.innerWidth > 768 ? 600 : window.innerWidth,
-        height: window.innerHeight,
+        width: 320,
+        height: 480,
     });
     const [page, setPage] = useState(0);
     const bookRef = useRef();
 
     useEffect(() => {
-        const handleResize = () => {
+        const updateDimensions = () => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            
+            // On mobile portrait, we want to maximize the cover/page scale
+            const isMobile = w <= 768;
             setDimensions({
-                width: window.innerWidth > 768 ? 600 : window.innerWidth,
-                height: window.innerHeight,
+                width: isMobile ? w : 600,
+                height: h,
             });
         };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+
+        updateDimensions();
+        window.addEventListener('resize', updateDimensions);
+        window.addEventListener('orientationchange', updateDimensions);
+        
+        return () => {
+            window.removeEventListener('resize', updateDimensions);
+            window.removeEventListener('orientationchange', updateDimensions);
+        };
     }, []);
 
     const onFlip = (e) => {
@@ -34,7 +46,7 @@ const Book = () => {
     };
 
     return (
-        <div className="flex justify-center items-center w-full h-dvh bg-[#f0f0f0] overflow-hidden">
+        <div className="flex justify-center items-center w-full h-screen h-[100dvh] bg-[#f0f0f0] overflow-hidden fixed inset-0">
             <HTMLFlipBook
                 width={dimensions.width}
                 height={dimensions.height}
@@ -49,6 +61,10 @@ const Book = () => {
                 className="shadow-2xl"
                 ref={bookRef}
                 onFlip={onFlip}
+                usePortrait={window.innerWidth <= 768}
+                startPage={0}
+                drawShadow={true}
+                flippingTime={1000}
             >
                 {/* PAGE 1: COUVERTURE */}
                 <Page number="1" density="hard">
