@@ -113,6 +113,20 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
+        background: #0a0a0a;
+      }
+
+      /* ✅ LAB ARTBOARD STAGE (V11) */
+      #labArtboard {
+        width: 820px;
+        height: 366px;
+        background: transparent;
+        transform-origin: center center;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
       }
 
       #preview {
@@ -127,7 +141,6 @@
         user-select: none;
         -webkit-user-select: none;
         -webkit-user-drag: none;
-        /* Fix Safari text autosize */
         -webkit-text-size-adjust: 100% !important;
         text-size-adjust: 100% !important;
       }
@@ -291,8 +304,9 @@
 
     <div class="device-frame" id="frame" style="overflow: hidden">
       <div id="preview-container">
-        <!-- UNE SEULE IFRAME - FLIPBOOK PUR SANS INJECTION -->
-        <iframe id="preview" src="./ebook_flipbook.backup.html"></iframe>
+        <div id="labArtboard">
+          <iframe id="preview" src="./ebook_flipbook.backup.html"></iframe>
+        </div>
         <!-- Zones de tap invisibles -->
         <div id="tap-prev" aria-label="Page précédente"></div>
         <div id="tap-next" aria-label="Page suivante"></div>
@@ -613,16 +627,37 @@
         setTimeout(() => { displayLock = false; }, 300);
 
         const landscape = currentW > currentH;
+        const artboard = document.getElementById("labArtboard");
+        const preview = document.getElementById("preview");
+
+        // ✅ ABORBOARD SCALING ENGINE (V11)
+        const updateArtboardScale = () => {
+             const vv = window.visualViewport;
+             const vw = vv ? vv.width : window.innerWidth;
+             const vh = vv ? vv.height : window.innerHeight;
+
+             if (landscape && artboard) {
+                // Clone Lab Mode (820x366)
+                const labW = 820;
+                const labH = 366;
+                const scale = Math.min(vw / labW, vh / labH);
+                artboard.style.width = labW + "px";
+                artboard.style.height = labH + "px";
+                artboard.style.transform = `scale(${scale})`;
+                console.log("[qa-v11] Artboard Scaling:", scale.toFixed(3));
+             } else if (artboard) {
+                // Portrait Mode: No scaling
+                artboard.style.width = "100%";
+                artboard.style.height = "100%";
+                artboard.style.transform = "none";
+             }
+        };
 
         try {
-          const f = document.getElementById("preview");
-          const doc = f?.contentDocument;
-          const win = f?.contentWindow;
-          
+          const doc = preview?.contentDocument;
+          const win = preview?.contentWindow;
           if (!doc || !win) return;
 
-          // ✅ INJECTION DU SCRIPT D'AUTONOMIE DANS L'IFRAME
-          // Pour contourner les SecurityError "cross-origin" sur file://
           let coreScript = doc.getElementById("qa-core-logic");
           if (!coreScript) {
              coreScript = doc.createElement("script");
@@ -630,8 +665,7 @@
              doc.body.appendChild(coreScript);
           }
 
-          // Passer les variables au script interne
-          win.__qaData = { landscape, version: "v10.1-final" };
+          win.__qaData = { landscape, version: "v11.0-artboard" };
 
           coreScript.textContent = `
             (function() {
@@ -639,132 +673,84 @@
               const $book = $('#flipbook');
               if (!$ || !$book.length || typeof $book.turn !== 'function') return;
 
-              const total = 7; // ✅ STRICT LIMIT V10
+              const total = 7; 
               
-              const updateSize = () => {
-                 // ✅ ANTI-GHOST CLEANUP
+              const syncSize = () => {
+                 const isL = (window.innerWidth > window.innerHeight);
+                 const fw = window.innerWidth;
+                 const fh = window.innerHeight;
+
+                 // Purge overflow pages
                  if ($book.turn("pages") > total) {
                     $book.turn("pages", total);
                     $('.p8, .p9, .p10, .p11, .p12').remove();
                  }
-
-                 // ✅ MIRROR SIZING (Iframe Inner Box)
-                 const fw = window.innerWidth;
-                 const fh = window.innerHeight;
                  
                  $book.turn("size", fw, fh);
-                 $book.css({
-                   "margin": "0 auto",
-                   "width": fw + "px",
-                   "height": fh + "px",
-                   "position": "relative",
-                   "left": "0",
-                   "top": "0"
-                 });
-                 console.log("[qa-v10] Mirror Sync:", fw, "x", fh);
+                 $book.css({ "margin": "0 auto", "width": fw + "px", "height": fh + "px" });
+                 console.log("[qa-v11] Iframe Internal Resize:", fw, "x", fh);
               };
 
-              // ✅ HYBRID DISPLAY MODE (Strict: P1 single / P2+ double in LAND)
               const syncDisplay = (page) => {
-                 const isLandscapeNow = (window.innerWidth > window.innerHeight);
-                 if (isLandscapeNow) {
+                 const isL = (window.innerWidth > window.innerHeight);
+                 if (isL) {
                     const targetMode = (page <= 1) ? "single" : "double";
-                    if ($book.turn("display") !== targetMode) {
-                       $book.turn("display", targetMode);
-                       console.log("[qa-v10] Display ->", targetMode, "at p", page);
-                    }
+                    if ($book.turn("display") !== targetMode) $book.turn("display", targetMode);
                  } else {
                     if ($book.turn("display") !== "single") $book.turn("display", "single");
                  }
-                 updateSize();
+                 syncSize();
               };
 
-              // 1. Initial State
               $book.turn("pages", total);
               syncDisplay($book.turn("page"));
-              updateSize();
+              syncSize();
 
-              // 2. Events hooks
               if (!window.__qaEventsAttached) {
                 $book.on("turning", (e, page) => {
-                  // ✅ HARD CLAMP (Physical block)
-                  if (page > total) {
-                     e.preventDefault();
-                     console.warn("[qa-v10] Blocked at max page", total);
-                     return;
-                  }
-                  if (page < 1) {
-                     e.preventDefault();
-                     return;
-                  }
+                  if (page > total || page < 1) { e.preventDefault(); return; }
                   syncDisplay(page);
                 });
-
                 $book.on("turned", (e, page) => {
-                   updateSize();
+                   syncSize();
                    setTimeout(() => syncDisplay(page), 50);
-                   setTimeout(updateSize, 300); 
                 });
-
-                window.addEventListener("resize", () => {
-                   setTimeout(updateSize, 100);
-                });
-                
-                if (window.visualViewport) {
-                   window.visualViewport.addEventListener("resize", updateSize);
-                   window.visualViewport.addEventListener("scroll", updateSize);
-                }
-
+                window.addEventListener("resize", syncSize);
                 window.__qaEventsAttached = true;
               }
             })();
           `;
 
-          resizeBook();
+          updateArtboardScale();
+          render_land_styles(doc, landscape);
         } catch (err) {
-          console.warn("[display] Fail-safe:", err.message);
+          console.warn("[qa-v11] Fail-safe:", err.message);
         }
       }
 
-      function resizeBook() {
-        try {
-          const f = document.getElementById("preview");
-          if (!f) return;
-          
-          const landscape = currentW > currentH;
-          if (f.contentDocument) {
-            applyLandOnlyStyles(f.contentDocument, landscape);
-          }
-          
-          // On tente le resize Turn.js via le window de l'iframe (si accessible)
-          const win = f.contentWindow;
-          const $ = win?.jQuery || win?.$;
-          if ($) {
-            const $book = $("#flipbook");
-            if ($book.length && typeof $book.turn === "function") {
-               const fw = f.offsetWidth;
-               const fh = f.offsetHeight;
-               $book.turn("size", fw, fh);
-               $book.css({ "margin": "0 auto", "width": fw + "px", "height": fh + "px" });
-               console.log("[qa-resize] Success:", fw, "x", fh);
-            }
-          }
-        } catch (e) {
-          // Si bloqué par CORS, le script injecté dans l'iframe prendra le relais via updateSize()
+      function render_land_styles(doc, isLand) {
+        let style = doc.getElementById("qa-land-only-fit");
+        if (!isLand) { if (style) style.remove(); return; }
+        if (!style) {
+          style = doc.createElement("style");
+          style.id = "qa-land-only-fit";
+          doc.head.appendChild(style);
         }
+        style.textContent = `
+            body { -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }
+            .page-content { padding: 10px 30px !important; height: 100% !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; overflow: hidden !important; }
+            #flipbook .page-content img { max-height: 42vh !important; max-width: 95% !important; margin: 10px auto !important; object-fit: contain !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; }
+            .page-content p { font-size: 1.05rem !important; line-height: 1.5 !important; margin: 8px 0 !important; }
+            .page-content h1, .page-content h2 { font-size: 1.7rem !important; margin: 8px 0 !important; }
+            #flipbook { margin: 0 auto !important; }
+            .flip-page { background: white !important; }
+        `;
       }
 
-      // Écouter les changements d'orientation/résolution (HORS updateUI)
-      let resizeTimer = null;
-      window.addEventListener("resize", () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(applyDisplayMode, 150);
-      });
-      window.addEventListener("orientationchange", () => {
-        setTimeout(applyDisplayMode, 200);
-      });
-
-      // NETTOYAGE TERMINÉ - MODE FLIPBOOK PUR UNIQUEMENT
+      // Listeners
+      window.addEventListener("resize", applyDisplayMode);
+      if (window.visualViewport) window.visualViewport.addEventListener("resize", applyDisplayMode);
+      window.addEventListener("orientationchange", () => setTimeout(applyDisplayMode, 200));
 
       updateUI();
     </script>
