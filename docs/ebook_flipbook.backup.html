@@ -1,341 +1,387 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>On est ensemble, Maman - Version Flipbook</title>
-    <!-- On utilise turn.js via CDN pour la démo, mais on privilégie l'offline-first en prod -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>On est ensemble, Maman - Story Mode</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <script src="js/jquery.min.js"></script>
     <script src="js/turn.min.js"></script>
-    <link rel="stylesheet" href="ebook_interactif.css" />
-    <style>
-      html,
-      body {
-        overscroll-behavior: none !important;
-      }
-      /* ✅ QA: AGRANDISSEMENT IMAGES PAGES 2,4,6,7 */
-      /* Targets: page 2/4/6/7 images only via Turn.js stable classes */
-      #flipbook .p2 .page-content img,
-      #flipbook .p4 .page-content img,
-      #flipbook .p6 .page-content img,
-      #flipbook .p7 .page-content img {
-        max-height: 470px !important;
-        margin: 0.6rem auto !important;
-      }
+    <link rel="stylesheet" href="css/story.css">
+    <link rel="stylesheet" href="css/ebook_interactif.css">
+</head>
+<body>
 
-      @media (max-width: 650px) {
-        #flipbook .p2 .page-content img,
-        #flipbook .p4 .page-content img,
-        #flipbook .p6 .page-content img,
-        #flipbook .p7 .page-content img {
-          max-height: 310px !important;
-        }
-      }
+<style>
+    /* MISSION UNIQUE : FULL-FIT / NO-CROP (STRATÉGIE MASTER SCALE V2) */
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        height: 100dvh;
+        overflow: hidden !important;
+        position: fixed;
+        background-color: #000; /* Fond noir profond */
+        display: grid;
+        place-items: center; /* Centrage Grid ultra-robuste */
+    }
+    
+    #flipbook-viewport {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-rows: 1fr !important; /* Force flexible row for centering */
+        place-items: center;
+        overflow: hidden !important;
+    }
 
-      /* ✅ CENTRAGE PAGES 3 & 5 (CITATIONS / RAPPELS) */
-      #flipbook .p3 .page-content,
-      #flipbook .p5 .page-content {
+    #flipbook {
+        /* On retire les transitions CSS sur le flipbook pour ne pas interférer avec Turn.js */
+        transform-origin: center center;
+        transition: transform 0.1s ease-out;
+        margin: 0 !important;
+        visibility: hidden; /* Caché jusqu'au premier resize() pour éviter le jump */
+    }
+
+    .flip-page:not(.page-1), 
+    .flip-page:not(.page-1) .page-content {
+        background-color: #F9F7F2 !important; /* Sable pour tout sauf couv */
+    }
+
+    .flip-page, 
+    .flip-page .page-content {
+        width: 480px !important;
+        height: 720px !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    /* STYLE UNIFIÉ - DESIGN EBOOK GRATUIT */
+    .page-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 24px !important;
+        box-sizing: border-box;
+        text-align: center;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #5D5D5D; /* Gris Doux */
+    }
+
+    .page-content img {
+        max-width: 100%;
+        max-height: 50% !important;
+        object-fit: contain;
+        margin: 15px 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 2px solid #FFFFFF; /* Bordure "Photo papier" */
+        border-radius: 16px;
+        position: relative !important; /* Reset position absolute de la couverture */
+        top: auto !important;
+        left: auto !important;
+        width: auto !important;
+        height: auto !important;
+    }
+
+    .page-overlay, .quote, .alert-box {
+        width: 100% !important;
+        display: block !important;
+        z-index: 5000 !important;
+        box-sizing: border-box;
+        margin-top: auto; 
+    }
+
+    .flip-page:not(.page-1) .page-overlay {
+        position: relative !important; 
+        bottom: 0 !important;
+        background: transparent !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        z-index: 5 !important;
+    }
+
+    .flip-page:not(.page-1) .page-overlay h1, 
+    .flip-page:not(.page-1) .page-overlay h2 {
+        font-family: 'Playfair Display', serif;
+        margin: 10px 0;
+        color: #E8A3A8 !important; /* Rose Poudré */
+        text-shadow: none !important; /* Pas de glow sur le contenu */
+        animation: none !important;
+        text-transform: none;
+        letter-spacing: normal;
+        font-size: clamp(24px, 5vw, 32px);
+    }
+
+    .page-overlay p {
+        font-size: clamp(14px, 4vw, 18px);
+        line-height: 1.6;
+        margin: 10px 0;
+    }
+
+    .quote {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        font-size: clamp(22px, 6vw, 30px);
+        color: #E8A3A8 !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 40px 20px !important;
+        position: relative;
+    }
+
+    .quote::before {
+        content: "“";
+        font-size: 80px;
+        color: rgba(232, 163, 168, 0.2);
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .alert-box {
+        background: #FFFFFF !important; /* Fond carte blanche */
+        border: none !important;
+        border-left: 4px solid #B7C6B0 !important; /* Bordure Sauge */
+        border-radius: 24px;
+        padding: 24px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        text-align: left;
+    }
+
+    .alert-box h2 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #B7C6B0 !important; /* Sauge */
+        font-size: 18px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+    }
+
+    /* NAVIGATION RADICALE V2 - BOUTONS DIRECTS FIXED */
+    .btn-nav {
+        position: fixed !important;
+        bottom: env(safe-area-inset-bottom, 25px) !important;
+        z-index: 20000 !important; /* Au-dessus de TOUT */
+        background: #fff !important;
+        color: #000 !important;
+        width: 50px !important;
+        height: 50px !important;
         display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
         align-items: center !important;
-        text-align: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        border: 3px solid #000 !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+        cursor: pointer !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+        text-decoration: none !important;
+        pointer-events: auto !important;
+    }
+
+    #prev-btn { left: 20px !important; }
+    #next-btn { right: 20px !important; }
+
+    /* CYCLE 2 - DESIGN COUVERTURE PREMIUM */
+    .page-1,
+    .page-1 .page-content {
+        padding: 0 !important; /* Full bleed total */
+        background: #000 !important;
+        margin: 0 !important;
+    }
+    .page-1 img {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
         height: 100% !important;
-      }
+        object-fit: cover !important; /* Immersif total */
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        z-index: 1 !important;
+    }
+    .page-1 .page-overlay {
+        z-index: 10 !important;
+        bottom: 100px !important;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.9) 100%) !important;
+        border: none !important;
+        padding: 40px 10px !important;
+    }
+    .page-1 .page-overlay h1 {
+        color: #fff !important;
+        text-shadow: 0 0 20px rgba(233, 30, 99, 0.8);
+        font-size: 28px !important;
+        letter-spacing: 3px !important;
+        animation: pulse-glow 3s infinite ease-in-out;
+    }
 
-      /* ✅ iOS BUG FIX: EDGE GUARDS (Prevents "Back" gesture) */
-      #edge-guard-left,
-      #edge-guard-right {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 22px;
-        z-index: 1000;
-        background: transparent;
-        pointer-events: auto;
-        touch-action: pan-y;
-      }
-      #edge-guard-left {
-        left: 0;
-      }
-      #edge-guard-right {
-        right: 0;
-      }
+    @keyframes pulse-glow {
+        0% { text-shadow: 0 0 10px rgba(233, 30, 99, 0.5); }
+        50% { text-shadow: 0 0 30px rgba(233, 30, 99, 1); }
+        100% { text-shadow: 0 0 10px rgba(233, 30, 99, 0.5); }
+    }
+</style>
 
-      /* ✅ DIDACTICIEL SWIPE V4 (MOBILE PUBLIC) */
-      #swipe-hint {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        width: 100px;
-        height: 100px;
-        z-index: 1000;
-        pointer-events: none;
-        opacity: 0;
-        background: url("./assets/swipe-left.png") no-repeat center;
-        background-size: contain;
-        filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
-      }
-      #swipe-hint.active {
-        animation: swipeGlideDouble 2.6s ease-in-out forwards;
-      }
-
-      @keyframes swipeGlideDouble {
-        0% {
-          transform: translateX(50px);
-          opacity: 0;
-        }
-        10% {
-          opacity: 1;
-        }
-        45% {
-          transform: translateX(-120px);
-          opacity: 0;
-        }
-        55% {
-          transform: translateX(50px);
-          opacity: 0;
-        }
-        65% {
-          opacity: 1;
-        }
-        100% {
-          transform: translateX(-120px);
-          opacity: 0;
-        }
-      }
-
-      /* ✅ PERSISTENCE LANDSCAPE FIX */
-      @media (orientation: landscape) {
-        #flipbook .page-content img {
-          max-height: 32vh !important;
-          max-width: 90% !important;
-          width: auto !important;
-          height: auto !important;
-          object-fit: contain !important;
-          margin: 5px auto !important;
-        }
-        .page-content {
-          padding-top: 10px !important;
-          padding-bottom: 10px !important;
-          justify-content: flex-start !important;
-        }
-        h2 {
-          font-size: 1.2rem !important;
-          margin-top: 0.5rem !important;
-          margin-bottom: 0.5rem !important;
-        }
-        p {
-          font-size: 0.9rem !important;
-          line-height: 1.3 !important;
-          margin-bottom: 1vh !important;
-        }
-      }
-    </style>
-  </head>
-  <body style="background: #f0f0f0">
-    <!-- SWIPE HINT overlay (non bloquant, visible au chargement) -->
-    <div id="swipe-hint" aria-hidden="true"></div>
-
-    <!-- ✅ iOS BUG FIX: EDGE GUARDS -->
-    <div id="edge-guard-left"></div>
-    <div id="edge-guard-right"></div>
-
-    <div id="flipbook-viewport">
-      <div id="flipbook">
+<div id="flipbook-viewport">
+    <div id="flipbook">
         <!-- COUVERTURE -->
-        <div class="flip-page hard">
-          <div
-            class="page-content"
-            style="background-color: var(--color-sable)"
-          >
-            <img
-              src="images/couverture.png"
-              alt="Couverture"
-              class="hero-img"
-              style="max-height: 480px"
-            />
-            <h1>On est ensemble, Maman</h1>
-            <p style="font-style: italic; color: var(--color-sauge)">
-              Douceur et Lumière au Quotidien
-            </p>
-          </div>
-        </div>
-
-        <!-- PAGE 2: AVANT-PROPOS -->
-        <div class="flip-page">
-          <div class="page-content">
-            <h2>Avant-propos</h2>
-            <img src="images/Scène Réveil Matin Chaotique.png" alt="Matin" />
-            <p>
-              Imagine une lumière matinale, douce et dorée... l’odeur du café
-              qui infuse... et cette sensation que tout va un peu trop vite.
-            </p>
-            <p>
-              Moi, c'est <strong>Marine</strong>. Je vis ce "chaos joyeux"
-              chaque jour avec <strong>Kaïto</strong> (4 ans) et
-              <strong>Yuna</strong> (2 ans).
-            </p>
-          </div>
-        </div>
-
-        <!-- PAGE 3: CITATION -->
-        <div class="flip-page">
-          <div class="page-content" style="justify-content: center">
-            <div class="quote">
-              "Tu n'es pas seule. Et tu n'as pas à porter ce poids toute seule."
+        <div class="flip-page hard page-1">
+            <div class="page-content">
+                <img src="images/couverture.png" alt="Couverture">
+                <div class="page-overlay">
+                    <h1>On est ensemble, Maman</h1>
+                </div>
             </div>
-            <p style="text-align: center; color: var(--color-sauge)">
-              — On est ensemble, Maman
-            </p>
-          </div>
         </div>
-
-        <!-- PAGE 4: CHAPITRE 1 -->
+        <!-- PAGE 2 -->
         <div class="flip-page">
-          <div class="page-content">
-            <h2>1. Le Miroir de la Guerrière</h2>
-            <p>
-              Devenir maman, c'est voir un paysage transformé par un tsunami.
-              Porter la vie est une force de guerrière cachée sous une peau
-              fatiguée.
-            </p>
-            <img
-              src="images/Illustration 1.1 - La remise en perspective (La guerrière).png"
-              alt="Guerrière"
-            />
-            <p style="font-style: italic; font-size: 0.9rem">
-              "Être vulnérable aujourd'hui, ce n'est pas être faible. C'est être
-              vivante."
-            </p>
-          </div>
-        </div>
-
-        <!-- PAGE 5: RAPPEL -->
-        <div class="flip-page">
-          <div class="page-content" style="justify-content: center">
-            <div class="alert-box">
-              <strong>À retenir</strong>
-              Ta fatigue est le témoin de tout l'amour que tu diffuses. Elle
-              mérite d'être honorée, pas jugée.
+            <div class="page-content">
+                <img src="images/Scène Réveil Matin Chaotique.png" alt="Matin">
+                <div class="page-overlay">
+                    <h2>Avant-propos</h2>
+                </div>
             </div>
-          </div>
         </div>
-
-        <!-- PAGE 6: EXERCICE -->
+        <!-- PAGE 3 -->
         <div class="flip-page">
-          <div class="page-content">
-            <h2 style="font-size: 1.5rem">🌟 L'Équilibre dans le Chaos</h2>
-            <p>
-              La vraie vie a des couleurs vibrantes : le bleu de la peinture, le
-              rose des joues, le beige du désordre.
-            </p>
-            <img
-              src="images/Illustration 6.1 - Le miroir bienveillant (Auto-affirmation).png"
-              alt="Miroir"
-            />
-            <div
-              style="font-style: italic; margin-top: 10px; font-size: 0.9rem"
-            >
-              <strong>Pacte de Lumière :</strong> "Je m'autorise à être une
-              femme imparfaite et une maman aimante."
+            <div class="page-content">
+                <div class="quote">"Tu n'es pas seule."</div>
             </div>
-          </div>
         </div>
-
-        <!-- PAGE 7: CONCLUSION -->
+        <!-- PAGE 4 -->
         <div class="flip-page">
-          <div
-            class="page-content"
-            style="text-align: center; justify-content: center"
-          >
-            <img src="images/Scène Coucher Tendre.png" alt="Coucher" />
-            <h2 style="font-size: 1.2rem">On est ensemble</h2>
-            <p style="font-size: 0.85rem">
-              Ce guide est une petite lampe de chevet pour tes nuits trop
-              courtes. Tu n'as pas à briller seule.
-            </p>
-            <p
-              style="
-                font-family: cursive;
-                color: var(--color-rose);
-                font-size: 1.3rem;
-                margin-top: 0.5rem;
-              "
-            >
-              Marine 💕
-            </p>
-          </div>
+            <div class="page-content">
+                <img src="images/Illustration 1.1 - La remise en perspective (La guerrière).png" alt="Guerrière">
+                <div class="page-overlay">
+                    <h2>1. La Guerrière</h2>
+                </div>
+            </div>
         </div>
-      </div>
+        <!-- PAGE 5 -->
+        <div class="flip-page">
+            <div class="page-content">
+                <div class="alert-box">
+                    <h2>À retenir</h2>
+                    <p>Maman, on est ensemble.</p>
+                </div>
+            </div>
+        </div>
+        <!-- PAGE 6 -->
+        <div class="flip-page">
+            <div class="page-content">
+                <img src="images/Illustration 6.1 - Le miroir bienveillant (Auto-affirmation).png" alt="Miroir">
+                <div class="page-overlay">
+                    <h2>🌟 Équilibre</h2>
+                </div>
+            </div>
+        </div>
+        <!-- PAGE 7 -->
+        <div class="flip-page conclusion">
+            <div class="page-content">
+                <img src="images/Scène Coucher Tendre.png" alt="Coucher">
+                <div class="page-overlay">
+                    <h2>Marine 💕</h2>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <script>
-      $(window).ready(function () {
-        var flipbook = $("#flipbook");
+<div id="prev-btn" class="btn-nav">←</div>
+<div id="next-btn" class="btn-nav">→</div>
 
-        // Initialisation Turn.js optimisée pour le swipe mobile
-        flipbook.turn({
-          display: "single",
-          width: window.innerWidth,
-          height: window.innerHeight,
-          autoCenter: true,
-          gradients: true,
-          acceleration: true,
-          elevation: 50,
-          duration: 1000,
-          when: {
-            turned: function (e, page) {
-              console.log("Page actuelle :", page);
-            },
-          },
-        });
+<script>
+    $(document).ready(function() {
+        var flipbook = $('#flipbook');
+        
+        // TAILLES DE RÉFÉRENCE (STRATÉGIE MASTER SCALE)
+        var pageW = 480;
+        var pageH = 720;
+        
+        function resize() {
+            var winW = $(window).width();
+            var winH = $(window).height();
+            var isMobile = (winW < 900);
+            var display = isMobile ? 'single' : 'double';
+            
+            var targetW = isMobile ? pageW : pageW * 2;
+            var targetH = pageH;
+            
+            if (flipbook.turn('display') !== display) {
+                flipbook.turn('display', display);
+            }
+            
+            flipbook.turn('size', targetW, targetH);
 
-        // Logiciel de Swipe Hint (joue 2 cycles au chargement)
-        // et iOS BUG FIX: EDGE GUARDS (Prevents "Back" gesture)
-        setTimeout(function () {
-          showSwipeHint();
-
-          const preventBack = (e) => {
-            if (e.cancelable) e.preventDefault();
-          };
-          const egl = document.getElementById("edge-guard-left");
-          const egr = document.getElementById("edge-guard-right");
-          // Use non-passive listeners to allow preventDefault
-          if (egl)
-            egl.addEventListener("touchmove", preventBack, { passive: false });
-          if (egr)
-            egr.addEventListener("touchmove", preventBack, { passive: false });
-        }, 1000);
-
-        // Gestion du redimensionnement dynamique
-        $(window).resize(function () {
-          flipbook.turn("size", window.innerWidth, window.innerHeight);
-        });
-
-        // Navigation clavier (confort desktop)
-        $(window).bind("keydown", function (e) {
-          if (e.keyCode === 37) {
-            flipbook.turn("previous");
-          } else if (e.keyCode === 39) {
-            flipbook.turn("next");
-          }
-        });
-        // Logiciel de Swipe Hint (joue 2 cycles au chargement)
-        function showSwipeHint() {
-          var hint = $("#swipe-hint");
-          if (hint.length) {
-            setTimeout(function () {
-              hint.addClass("active");
-              // Retrait auto du DOM après les 2 cycles (2.6s)
-              setTimeout(function () {
-                hint.remove();
-              }, 3000);
-            }, 1000); // Petit délai pour laisser la page charger
-          }
+            // CALCUL DU SCALE V3 - FULL-FIT TOTAL
+            var scaleX = winW / targetW;
+            var scaleY = winH / targetH;
+            var scale = Math.min(scaleX, scaleY);
+            
+            flipbook.css({
+                'transform': 'scale(' + scale + ')',
+                'position': 'static',
+                'margin': '0',
+                'visibility': 'visible' // Révélé après le premier calcul
+            });
         }
-        showSwipeHint();
-      });
-    </script>
-  </body>
+
+        flipbook.turn({
+            width: pageW * 2,
+            height: pageH,
+            autoCenter: false, // Désactivé pour laisser le CSS Grid gérer le centrage
+            display: ($(window).width() < 900) ? 'single' : 'double',
+            acceleration: true,
+            gradients: true,
+            elevation: 50,
+            duration: 600
+        });
+
+        $(window).resize(resize);
+        resize();
+        setTimeout(resize, 200); // Patch iOS orientation change
+
+        // TOUCH HANDLING V3 - SENSIBILITÉ ACCRUE
+        var ts;
+        flipbook.on('touchstart', function(e) { 
+            ts = e.originalEvent.touches[0].pageX; 
+        });
+        flipbook.on('touchend', function(e) {
+            var te = e.originalEvent.changedTouches[0].pageX;
+            var diff = ts - te;
+            if (Math.abs(diff) > 30) { // Sensibilité de 30px au lieu de 50px
+                if (diff > 0) flipbook.turn('next');
+                else flipbook.turn('previous');
+            }
+        });
+
+        $('#prev-btn').click(function() { flipbook.turn('previous'); });
+        $('#next-btn').click(function() { flipbook.turn('next'); });
+    });
+
+    // ZOOM PREVENTION
+    document.addEventListener('touchstart', function(e) { 
+        if (e.touches.length > 1) e.preventDefault(); 
+    }, { passive: false });
+    
+    var lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+        var now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) e.preventDefault();
+        lastTouchEnd = now;
+    }, false);
+</script>
+
+</body>
 </html>
