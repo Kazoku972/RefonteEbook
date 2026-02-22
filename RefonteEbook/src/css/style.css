@@ -1,0 +1,219 @@
+/* Styles Partagés et Interactifs pour Ebook Mobile & Flipbook */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap');
+
+:root {
+    --color-sable: #F9F7F2;
+    --color-sauge: #B7C6B0;
+    --color-sauge-light: rgba(183, 198, 176, 0.1);
+    --color-rose: #E8A3A8;
+    --color-text: #5D5D5D;
+    --color-white: #FFFFFF;
+    --font-title: 'Playfair Display', serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* --- RESET & BASE --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Important for flipbook container */
+    background-color: #2c2c2c; /* Dark background outside book */
+}
+
+body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--color-text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- FLIPBOOK CONTAINER --- */
+#flipbook-viewport {
+    width: 100vw;
+    height: 100dvh; /* Dynamic Viewport Height for Mobile */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#flipbook {
+    width: 1000px;  /* Double page width (500*2) */
+    height: 700px;
+    transition: transform 0.3s ease-out; /* Smooth scaling */
+}
+
+/* --- PAGE STYLES --- */
+.flip-page {
+    background-color: var(--color-white);
+    background-image:
+        linear-gradient(to right, rgba(0,0,0,0.02) 0%, rgba(255,255,255,0) 5%, rgba(255,255,255,0) 95%, rgba(0,0,0,0.02) 100%);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
+}
+
+.flip-page.hard {
+    background-color: var(--color-sable);
+}
+
+.page-content {
+    width: 100%;
+    height: 100%;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center; /* Center vertically by default */
+}
+
+/* --- TYPOGRAPHY --- */
+h1, h2, h3 {
+    font-family: var(--font-title);
+    margin-bottom: 1rem;
+}
+
+h1 {
+    color: var(--color-rose);
+    font-size: 2.2rem;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+h2 {
+    color: var(--color-sauge);
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+
+h3 {
+    font-family: var(--font-body);
+    color: var(--color-sauge);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+p {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text);
+    margin-top: 1rem;
+    font-style: italic;
+}
+
+.signature {
+    font-family: 'Playfair Display', serif; /* Or script font if available */
+    font-size: 2rem;
+    color: var(--color-rose);
+    margin-top: 2rem;
+}
+
+/* --- IMAGES --- */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    max-height: 300px; /* Limit height to fit page */
+    object-fit: contain;
+}
+
+.cover-img {
+    max-height: 400px;
+    border: 5px solid white;
+}
+
+/* --- COMPONENTS --- */
+.quote {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--color-text);
+    padding: 1.5rem;
+    position: relative;
+    margin: 1.5rem 0;
+}
+
+.quote::before {
+    content: '"';
+    font-family: var(--font-title);
+    color: var(--color-rose);
+    font-size: 3rem;
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.2;
+}
+
+.card {
+    background: var(--color-white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    width: 100%;
+    text-align: left;
+}
+
+.alert-box {
+    border-left: 4px solid var(--color-sauge);
+    background: var(--color-sauge-light);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 10px 10px 0;
+    text-align: left;
+    width: 100%;
+}
+
+.warning-card {
+    border-left: 4px solid var(--color-rose);
+    background: rgba(232, 163, 168, 0.1);
+}
+
+.tool-card ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.tool-card li {
+    margin-bottom: 0.5rem;
+    padding-left: 1.2rem;
+    position: relative;
+}
+
+.tool-card li::before {
+    content: '•';
+    color: var(--color-sauge);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 600px) {
+    .page-content {
+        padding: 20px;
+    }
+
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; }
+    p { font-size: 0.95rem; }
+
+    img {
+        max-height: 200px;
+    }
+}
