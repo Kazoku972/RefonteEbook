@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-const Page = forwardRef(({ number, children, density, isDarkMode, centered, viewportHeight }, ref) => {
+const Page = forwardRef(({ number, children, density, isDarkMode }, ref) => {
   return (
     <div 
       className={`overflow-hidden shadow-inner relative flex flex-col items-center text-center px-4 py-6 transition-all duration-500 ${
@@ -12,22 +12,14 @@ const Page = forwardRef(({ number, children, density, isDarkMode, centered, view
       data-density={density || 'soft'}
       data-page={number}
     >
-      {centered && viewportHeight ? (
-        <div style={{ width: '100%', height: viewportHeight, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 1rem' }}>
-          {children}
-        </div>
-      ) : (
-        <div className="h-full w-full flex flex-col items-center justify-start overflow-y-auto pointer-events-none">
-          {children}
-        </div>
-      )}
-      {!centered && (
-        <div className={`absolute bottom-2 right-4 text-xs font-medium transition-colors duration-500 ${
-          isDarkMode ? 'text-gray-600' : 'text-gray-400'
-        }`}>
-          {number}
-        </div>
-      )}
+      <div className="h-full w-full flex flex-col items-center justify-start overflow-y-auto pointer-events-none">
+        {children}
+      </div>
+      <div className={`absolute bottom-2 right-4 text-xs font-medium transition-colors duration-500 ${
+        isDarkMode ? 'text-gray-600' : 'text-gray-400'
+      }`}>
+        {number}
+      </div>
     </div>
   );
 });
