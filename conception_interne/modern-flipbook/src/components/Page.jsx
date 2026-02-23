@@ -3,7 +3,7 @@ import React, { forwardRef } from 'react';
 const Page = forwardRef(({ number, children, density, isDarkMode }, ref) => {
   return (
     <div 
-      className={`overflow-hidden shadow-inner relative flex flex-col items-center text-center px-4 py-6 transition-all duration-500 ${
+      className={`h-full w-full overflow-hidden shadow-inner relative flex flex-col items-center text-center px-4 py-6 transition-all duration-500 ${
         isDarkMode 
           ? 'bg-[#1a1a1a] shadow-none' 
           : 'bg-[#F9F7F2]'
