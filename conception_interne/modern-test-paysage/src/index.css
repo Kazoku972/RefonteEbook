@@ -37,3 +37,26 @@ body.dark-mode {
 }
 
 
+/* --- EXTENSIONS PAYSAGE ISOLÉES --- */
+
+.flipbook .page img {
+    width: 50% !important;
+    height: auto !important;
+    object-fit: contain !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+.flipbook .page:nth-child(3) .page-content,
+.flipbook .page:nth-child(5) .page-content {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    height: 100% !important;
+    padding: 0 !important;
+}
+
+.flipbook .page {
+    position: relative !important;
+}
