@@ -12,10 +12,10 @@ const Page = forwardRef(({ number, children, density, isDarkMode }, ref) => {
       data-density={density || 'soft'}
       data-page={number}
     >
-      <div className="h-full w-full flex flex-col items-center justify-start overflow-y-auto pointer-events-none">
+      <div className="flex-grow w-full flex flex-col items-center justify-start overflow-y-auto pointer-events-none">
         {children}
       </div>
-      <div className={`absolute bottom-2 right-4 text-xs font-medium transition-colors duration-500 ${
+      <div className={`mt-auto mb-2 mr-4 self-end text-xs font-medium transition-colors duration-500 ${
         isDarkMode ? 'text-gray-600' : 'text-gray-400'
       }`}>
         {number}
