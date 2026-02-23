@@ -97,7 +97,7 @@ const Book = ({ isDarkMode, language }) => {
                 {/* PAGE 1: COUVERTURE */}
                 <Page number="1" density="hard" isDarkMode={isDarkMode}>
                     <div className="flex flex-col items-center justify-center h-full w-full p-6">
-                        <img src={couverture} alt="Couverture" className={`w-[50%] !mx-auto object-contain max-h-[480px] rounded-xl shadow-lg mb-6 border-2 border-white transition-all duration-500 ${isDarkMode ? 'brightness-[0.8] contrast-[1.1]' : ''}`} />
+                        <img src={couverture} alt="Couverture" className={`max-h-[480px] w-auto rounded-xl shadow-lg mb-6 border-2 border-white transition-all duration-500 ${isDarkMode ? 'brightness-[0.8] contrast-[1.1]' : ''}`} />
                         <h1 className={`text-4xl font-bold uppercase mb-2 text-center transition-colors duration-500 ${isDarkMode ? 'text-[#E8A3A8]' : 'text-[#E8A3A8]'}`}>
                             {t.cover.title}
                         </h1>
