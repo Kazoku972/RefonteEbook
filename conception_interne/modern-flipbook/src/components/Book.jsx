@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import Page from './Page';
-import Controls from './Controls';
 
 // Import assets (example for paths)
 import couverture from '../assets/images/couverture.webp';
@@ -10,7 +9,10 @@ import guerriere from '../assets/images/Illustration 1.1 - La remise en perspect
 import miroir from '../assets/images/Illustration 6.1 - Le miroir bienveillant (Auto-affirmation).webp';
 import coucher from '../assets/images/Scène Coucher Tendre.webp';
 
-const Book = () => {
+import { translations } from '../translations';
+
+const Book = ({ isDarkMode, language }) => {
+    const t = translations[language];
     const [dimensions, setDimensions] = useState({
         width: window.innerWidth > 768 ? 600 : window.innerWidth,
         height: window.innerHeight,
@@ -34,7 +36,7 @@ const Book = () => {
     };
 
     return (
-        <div className="flex justify-center items-center w-full h-dvh bg-[#f0f0f0] overflow-hidden">
+        <div className={`flex justify-center items-center w-full h-dvh transition-colors duration-500 overflow-hidden ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f0f0f0]'}`}>
             <HTMLFlipBook
                 width={dimensions.width}
                 height={dimensions.height}
@@ -43,107 +45,112 @@ const Book = () => {
                 maxWidth={1000}
                 minHeight={400}
                 maxHeight={1533}
-                maxShadowOpacity={0.5}
+                maxShadowOpacity={isDarkMode ? 0.8 : 0.5}
                 showCover={true}
                 mobileScrollSupport={true}
                 className="shadow-2xl"
                 ref={bookRef}
                 onFlip={onFlip}
-                usePortrait={window.innerWidth <= 768}
-                startPage={0}
-                drawShadow={true}
-                flippingTime={1000}
             >
                 {/* PAGE 1: COUVERTURE */}
-                <Page number="1" density="hard">
-                    <div className="flex flex-col items-center justify-center h-full bg-[#F9F7F2] w-full p-6">
-                        <img src={couverture} alt="Couverture" className="max-h-[480px] w-auto rounded-xl shadow-lg mb-6 border-2 border-white" />
-                        <h1 className="text-4xl text-[#E8A3A8] font-bold uppercase mb-2">On est ensemble, Maman</h1>
-                        <p className="italic text-[#B7C6B0]">Douceur et Lumière au Quotidien</p>
+                <Page number="1" density="hard" isDarkMode={isDarkMode}>
+                    <div className="flex flex-col items-center justify-center h-full w-full p-6">
+                        <img src={couverture} alt="Couverture" className={`max-h-[480px] w-auto rounded-xl shadow-lg mb-6 border-2 border-white transition-all duration-500 ${isDarkMode ? 'brightness-[0.8] contrast-[1.1]' : ''}`} />
+                        <h1 className={`text-4xl font-bold uppercase mb-2 text-center transition-colors duration-500 ${isDarkMode ? 'text-[#E8A3A8]' : 'text-[#E8A3A8]'}`}>
+                            {t.cover.title}
+                        </h1>
+                        <p className={`italic text-center transition-colors duration-500 ${isDarkMode ? 'text-[#B7C6B0]' : 'text-[#B7C6B0]'}`}>
+                            {t.cover.subtitle}
+                        </p>
                     </div>
                 </Page>
 
                 {/* PAGE 2: AVANT-PROPOS */}
-                <Page number="2">
-                    <h2 className="text-2xl text-[#B7C6B0] font-bold mb-4 mt-8">Avant-propos</h2>
-                    <img src={matin} alt="Matin" className="w-full max-h-[40%] object-contain mb-4 rounded-lg" />
-                    <p className="text-[#444] leading-relaxed mb-4">
-                        Imagine une lumière matinale, douce et dorée... l’odeur du café qui infuse... et cette sensation que tout va un peu trop vite.
+                <Page number="2" isDarkMode={isDarkMode}>
+                    <h2 className={`text-2xl font-bold mb-4 mt-8 transition-colors duration-500 ${isDarkMode ? 'text-[#B7C6B0]' : 'text-[#B7C6B0]'}`}>
+                        {t.page2.title}
+                    </h2>
+                    <img src={matin} alt="Matin" className={`w-full max-h-[40%] object-contain mb-4 rounded-lg transition-all duration-500 ${isDarkMode ? 'brightness-[0.8]' : ''}`} />
+                    <p className={`leading-relaxed mb-4 transition-colors duration-500 ${isDarkMode ? 'text-[#d1d1d1]' : 'text-[#444]'}`}>
+                        {t.page2.content1}
                     </p>
-                    <p className="text-[#444] leading-relaxed">
-                        Moi, c'est <strong>Marine</strong>. Je vis ce "chaos joyeux" chaque jour avec <strong>Kaïto</strong> (4 ans) et <strong>Yuna</strong> (2 ans).
+                    <p className={`leading-relaxed transition-colors duration-500 ${isDarkMode ? 'text-[#d1d1d1]' : 'text-[#444]'}`}>
+                        {t.page2.content2}
                     </p>
                 </Page>
 
                 {/* PAGE 3: CITATION */}
-                <Page number="3">
+                <Page number="3" isDarkMode={isDarkMode}>
                     <div className="flex flex-col items-center justify-center h-full">
-                        <div className="italic text-xl text-center p-8 relative mb-4 before:content-['\201C'] before:text-6xl before:text-[#E8A3A8] before:absolute before:top-[-10px] before:left-1/2 before:-translate-x-1/2 before:opacity-20">
-                            "Tu n'es pas seule. Et tu n'as pas à porter ce poids toute seule."
+                        <div className={`italic text-xl text-center p-8 relative mb-4 before:content-['\\201C'] before:text-6xl before:absolute before:top-[-10px] before:left-1/2 before:-translate-x-1/2 before:opacity-20 transition-colors duration-500 ${isDarkMode ? 'text-[#d1d1d1] before:text-[#E8A3A8]' : 'text-[#444] before:text-[#E8A3A8]'}`}>
+                            {t.page3.quote}
                         </div>
-                        <p className="text-center text-[#B7C6B0]">
-                            — On est ensemble, Maman
+                        <p className={`text-center transition-colors duration-500 ${isDarkMode ? 'text-[#B7C6B0]' : 'text-[#B7C6B0]'}`}>
+                            {t.page3.author}
                         </p>
                     </div>
                 </Page>
 
                 {/* PAGE 4: CHAPITRE 1 */}
-                <Page number="4">
-                    <h2 className="text-2xl text-[#B7C6B0] font-bold mb-4 mt-8">1. Le Miroir de la Guerrière</h2>
-                    <p className="text-[#444] leading-relaxed mb-4 text-left">
-                        Devenir maman, c'est voir un paysage transformé par un tsunami. Porter la vie est une force de guerrière cachée sous une peau fatiguée.
+                <Page number="4" isDarkMode={isDarkMode}>
+                    <h2 className={`text-2xl font-bold mb-4 mt-8 transition-colors duration-500 ${isDarkMode ? 'text-[#B7C6B0]' : 'text-[#B7C6B0]'}`}>
+                        {t.page4.title}
+                    </h2>
+                    <p className={`leading-relaxed mb-4 text-left transition-colors duration-500 ${isDarkMode ? 'text-[#d1d1d1]' : 'text-[#444]'}`}>
+                        {t.page4.content}
                     </p>
-                    <img src={guerriere} alt="Guerrière" className="w-full max-h-[40%] object-contain mb-4 rounded-lg" />
-                    <p className="italic text-sm text-[#444]">
-                        "Être vulnérable aujourd'hui, ce n'est pas être faible. C'est être vivante."
+                    <img src={guerriere} alt="Guerrière" className={`w-full max-h-[40%] object-contain mb-4 rounded-lg transition-all duration-500 ${isDarkMode ? 'brightness-[0.8]' : ''}`} />
+                    <p className={`italic text-sm transition-colors duration-500 ${isDarkMode ? 'text-[#a1a1a1]' : 'text-[#444]'}`}>
+                        {t.page4.quote}
                     </p>
                 </Page>
 
                 {/* PAGE 5: RAPPEL */}
-                <Page number="5">
+                <Page number="5" isDarkMode={isDarkMode}>
                     <div className="flex flex-col items-center justify-center h-full w-full">
-                        <div className="border-l-4 border-[#6D8264] bg-[#B7C6B0]/10 p-6 rounded-r-xl text-left text-[#333] w-full">
-                            <strong className="block mb-2 text-[#222]">À retenir</strong>
-                            Ta fatigue est le témoin de tout l'amour que tu diffuses. Elle mérite d'être honorée, pas jugée.
+                        <div className={`border-l-4 p-6 rounded-r-xl text-left w-full transition-all duration-500 ${isDarkMode ? 'border-[#6D8264] bg-[#B7C6B0]/10 text-[#d1d1d1]' : 'border-[#6D8264] bg-[#B7C6B0]/10 text-[#333]'}`}>
+                            <strong className={`block mb-2 transition-colors duration-500 ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
+                                {t.page5.label}
+                            </strong>
+                            {t.page5.text}
                         </div>
                     </div>
                 </Page>
 
                 {/* PAGE 6: EXERCICE */}
-                <Page number="6">
-                    <h2 className="text-2xl text-[#B7C6B0] font-bold mb-4 mt-8">🌟 L'Équilibre dans le Chaos</h2>
-                    <p className="text-[#444] leading-relaxed mb-4 text-left">
-                        La vraie vie a des couleurs vibrantes : le bleu de la peinture, le rose des joues, le beige du désordre.
+                <Page number="6" isDarkMode={isDarkMode}>
+                    <h2 className={`text-2xl font-bold mb-4 mt-8 transition-colors duration-500 ${isDarkMode ? 'text-[#B7C6B0]' : 'text-[#B7C6B0]'}`}>
+                        {t.page6.title}
+                    </h2>
+                    <p className={`leading-relaxed mb-4 text-left transition-colors duration-500 ${isDarkMode ? 'text-[#d1d1d1]' : 'text-[#444]'}`}>
+                        {t.page6.content}
                     </p>
-                    <img src={miroir} alt="Miroir" className="w-full max-h-[40%] object-contain mb-4 rounded-lg" />
-                    <div className="italic mt-4 text-sm text-[#333]">
-                        <strong className="text-[#222]">Pacte de Lumière :</strong> "Je m'autorise à être une femme imparfaite et une maman aimante."
+                    <img src={miroir} alt="Miroir" className={`w-full max-h-[40%] object-contain mb-4 rounded-lg transition-all duration-500 ${isDarkMode ? 'brightness-[0.8]' : ''}`} />
+                    <div className={`italic mt-4 text-sm transition-colors duration-500 ${isDarkMode ? 'text-[#d1d1d1]' : 'text-[#333]'}`}>
+                        <strong className={`transition-colors duration-500 ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
+                            {t.page6.pactLabel}
+                        </strong> {t.page6.pactText}
                     </div>
                 </Page>
 
                 {/* PAGE 7: CONCLUSION */}
-                <Page number="7">
+                <Page number="7" isDarkMode={isDarkMode}>
                     <div className="flex flex-col items-center justify-center h-full">
-                        <img src={coucher} alt="Coucher" className="w-full max-h-[40%] object-contain mb-4 rounded-lg" />
-                        <h2 className="text-xl text-[#B7C6B0] font-bold mb-2">On est ensemble</h2>
-                        <p className="text-sm text-[#444] mb-4">
-                            Ce guide est une petite lampe de chevet pour tes nuits trop courtes. Tu n'as pas à briller seule.
+                        <img src={coucher} alt="Coucher" className={`w-full max-h-[40%] object-contain mb-4 rounded-lg transition-all duration-500 ${isDarkMode ? 'brightness-[0.8]' : ''}`} />
+                        <h2 className={`text-xl font-bold mb-2 transition-colors duration-500 ${isDarkMode ? 'text-[#B7C6B0]' : 'text-[#B7C6B0]'}`}>
+                            {t.page7.title}
+                        </h2>
+                        <p className={`text-sm mb-4 transition-colors duration-500 ${isDarkMode ? 'text-[#d1d1d1]' : 'text-[#444]'}`}>
+                            {t.page7.content}
                         </p>
-                        <p className="font-serif text-[#E8A3A8] text-2xl mt-2 italic">
-                            Marine 💕
+                        <p className={`font-serif text-[#E8A3A8] text-2xl mt-2 italic transition-colors duration-500`}>
+                            {t.page7.footer}
                         </p>
                     </div>
                 </Page>
             </HTMLFlipBook>
-
-            <Controls 
-                currentPage={page} 
-                totalPages={7} 
-                onPageJump={(p) => bookRef.current.pageFlip().turnToPage(p)}
-                onNext={() => bookRef.current.pageFlip().flipNext()}
-                onPrev={() => bookRef.current.pageFlip().flipPrev()}
-            />
         </div>
+
     );
 };
 

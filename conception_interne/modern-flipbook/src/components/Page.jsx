@@ -1,13 +1,23 @@
 import React, { forwardRef } from 'react';
 
-const Page = forwardRef((props, ref) => {
+const Page = forwardRef(({ number, children, density, isDarkMode }, ref) => {
   return (
-    <div className="bg-white overflow-hidden shadow-inner relative flex flex-col items-center text-center px-4 py-6" ref={ref} data-density={props.density || 'soft'}>
+    <div 
+      className={`overflow-hidden shadow-inner relative flex flex-col items-center text-center px-4 py-6 transition-all duration-500 ${
+        isDarkMode 
+          ? 'bg-[#1a1a1a] shadow-none' 
+          : 'bg-[#F9F7F2]'
+      }`} 
+      ref={ref} 
+      data-density={density || 'soft'}
+    >
       <div className="flex-1 w-full flex flex-col items-center justify-start overflow-y-auto pointer-events-none">
-        {props.children}
+        {children}
       </div>
-      <div className="absolute bottom-2 right-4 text-xs text-gray-400 font-medium">
-        {props.number}
+      <div className={`absolute bottom-2 right-4 text-xs font-medium transition-colors duration-500 ${
+        isDarkMode ? 'text-gray-600' : 'text-gray-400'
+      }`}>
+        {number}
       </div>
     </div>
   );
