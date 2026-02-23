@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-const Page = forwardRef(({ number, children, density, isDarkMode }, ref) => {
+const Page = forwardRef(({ number, children, density, isDarkMode, centered }, ref) => {
   return (
     <div 
       className={`overflow-hidden shadow-inner relative flex flex-col items-center text-center px-4 py-6 transition-all duration-500 ${
@@ -11,7 +11,7 @@ const Page = forwardRef(({ number, children, density, isDarkMode }, ref) => {
       ref={ref} 
       data-density={density || 'soft'}
     >
-      <div className="flex-1 w-full flex flex-col items-center justify-start overflow-y-auto pointer-events-none">
+      <div className={`flex-1 w-full flex flex-col items-center overflow-y-auto pointer-events-none ${centered ? 'justify-center' : 'justify-start'}`}>
         {children}
       </div>
       <div className={`absolute bottom-2 right-4 text-xs font-medium transition-colors duration-500 ${
