@@ -22,23 +22,11 @@ const Book = ({ isDarkMode, language }) => {
 
     useEffect(() => {
         const handleResize = () => {
-            const screenW = window.innerWidth;
-            const screenH = window.innerHeight;
-            
-            // Base width: full width on mobile, 600px on desktop
-            let w = screenW > 768 ? 600 : screenW * 0.9;
-            // Height based on a standard book ratio
-            let h = w * 1.3;
-            
-            // Safety cap to ensure it fits vertically
-            if (h > screenH * 0.85) {
-                h = screenH * 0.85;
-                w = h / 1.3;
-            }
-
-            setDimensions({ width: w, height: h });
+            setDimensions({
+                width: window.innerWidth > 768 ? 600 : window.innerWidth,
+                height: window.innerHeight,
+            });
         };
-        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -48,19 +36,18 @@ const Book = ({ isDarkMode, language }) => {
     };
 
     return (
-        <div className="flex justify-center items-center transition-colors duration-500 overflow-hidden relative py-10">
+        <div className="flex justify-center items-center w-full h-dvh transition-colors duration-500 overflow-hidden relative">
             <HTMLFlipBook
                 width={dimensions.width}
                 height={dimensions.height}
                 size="stretch"
-                minWidth={280}
+                minWidth={315}
                 maxWidth={1000}
-                minHeight={300}
-                maxHeight={1200}
+                minHeight={400}
+                maxHeight={1533}
                 maxShadowOpacity={isDarkMode ? 0.8 : 0.5}
                 showCover={true}
                 mobileScrollSupport={true}
-                autoCenter={true}
                 className="shadow-2xl"
                 ref={bookRef}
                 onFlip={onFlip}
