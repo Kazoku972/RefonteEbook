@@ -48,7 +48,7 @@ body.dark-mode {
     
     /* Réduire légèrement la taille globale du livre pour l'adapter au 360px de haut */
     .stf__wrapper {
-        transform: scale(0.85) !important;
+        transform: scale(0.50) !important;
         transform-origin: center center !important;
     }
 
