@@ -8,13 +8,17 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [language, setLanguage] = useState('fr');
 
-  const t = translations[language].ui;
-
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
   const toggleLanguage = () => setLanguage(language === 'fr' ? 'en' : 'fr');
 
+  useEffect(() => {
+    document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
+  }, [isDarkMode]);
+
+  const t = translations[language].ui;
+
   return (
-    <div className={`App transition-colors duration-500 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f0f0f0]'}`}>
+    <div className="App transition-colors duration-500">
       
       {/* FLOATING CONTROLS CONTAINER */}
       <div className="fixed top-6 right-6 z-60 flex gap-3">

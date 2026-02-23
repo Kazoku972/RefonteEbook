@@ -22,11 +22,13 @@ const Book = ({ isDarkMode, language }) => {
 
     useEffect(() => {
         const handleResize = () => {
+            const width = window.innerWidth > 768 ? 600 : window.innerWidth;
             setDimensions({
-                width: window.innerWidth > 768 ? 600 : window.innerWidth,
-                height: window.innerHeight,
+                width: width,
+                height: window.innerWidth > 768 ? 450 : width * 1.5,
             });
         };
+        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -36,7 +38,7 @@ const Book = ({ isDarkMode, language }) => {
     };
 
     return (
-        <div className={`flex justify-center items-center w-full min-h-screen h-[100dvh] transition-colors duration-500 overflow-hidden relative ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f0f0f0]'}`}>
+        <div className="flex justify-center items-center w-full transition-colors duration-500 overflow-hidden relative py-10">
             <HTMLFlipBook
                 width={dimensions.width}
                 height={dimensions.height}
