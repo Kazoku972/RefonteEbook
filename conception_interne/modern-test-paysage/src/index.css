@@ -47,8 +47,8 @@ body.dark-mode {
     display: block !important;
 }
 
-.flipbook .page:nth-child(3) .page-content,
-.flipbook .page:nth-child(5) .page-content {
+.flipbook .page:nth-child(2) .page-content,
+.flipbook .page:nth-child(3) .page-content {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
@@ -59,4 +59,5 @@ body.dark-mode {
 
 .flipbook .page {
     position: relative !important;
+    overflow: hidden !important;
 }
